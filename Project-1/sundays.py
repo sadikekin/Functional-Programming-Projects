@@ -49,4 +49,8 @@ def sundays2(start, end):
 
 
 print(sundays1(1901, 2000))
-print(sundays2(1901, 2000))
+print(sundays1(1905, 2000))
+print(sundays1(1950, 2000))
+print(sundays1(1200, 2000))
+print(sundays1(1610, 2090))
+print(day_of_week(1999, 11, 18))
