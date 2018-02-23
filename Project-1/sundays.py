@@ -2,15 +2,16 @@ from math import floor
 
 
 def day_of_week(y, m, d):
-    j = y // 100
-    k = y % 100
     if m <= 2:
         m += 12
+        y -= 1
+    j = y // 100
+    k = y % 100
     t1 = floor(13 * (m + 1) / 5)
     t2 = floor(k / 4)
     t3 = floor(j / 4)
     z = (d + t1 + k + t2 + t3 + 5 * j) % 7
-    return z
+    return z - 1
 
 
 def sundays1(start, end):
@@ -53,4 +54,4 @@ print(sundays1(1905, 2000))
 print(sundays1(1950, 2000))
 print(sundays1(1200, 2000))
 print(sundays1(1610, 2090))
-print(day_of_week(1999, 11, 18))
+print(sundays2(1901, 2000))

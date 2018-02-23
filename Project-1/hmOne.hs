@@ -2,14 +2,15 @@
 dayOfWeek :: Integer -> Integer -> Integer -> Integer
 dayOfWeek y m d = returnValue
   where
-    j = floor (fromIntegral y / fromIntegral 100)
-    k = y `mod` 100
-    mNew  = if m <= 2 then m + 12 else m
+    m' = if m <= 2 then m + 12 else m
+    y' = if m <= 2 then y - 1 else y
+    j = floor (fromIntegral y' / fromIntegral 100)
+    k = y' `mod` 100
 
-    tOne = floor (13.0 * fromIntegral (mNew + 1) /  5.0)
+    tOne = floor (13.0 * fromIntegral (m' + 1) /  5.0)
     tTwo = floor  (fromIntegral k /  4.0)
-    tThree = floor (fromIntegral j /  4.0)
-    returnValue = (d + tOne + k + tTwo + tThree + (5 * j)) `mod` 7
+    tThree  = floor (fromIntegral j /  4.0)
+    returnValue = ((d + tOne + k + tTwo + tThree + (5 * j)) `mod` 7) - 1
 
 
 sundaysOne :: Integer -> Integer -> Integer
@@ -17,11 +18,24 @@ sundaysOne start end = sundays' start 1
   where
     sundays' :: Integer -> Integer -> Integer
     sundays' y m
-      | y > end = 0
+      | y > end   = 0
       | otherwise = if dayOfWeek y m 1 == 1 then rest + 1 else rest where
         nextY = if m == 12 then y + 1 else y
         nextM = if m == 12 then 1 else m + 1
         rest = sundays' nextY nextM
+
+sundaysOneTail :: Integer -> Integer -> Integer
+sundaysOneTail start end = sundays' start 1 0
+  where
+    sundays' :: Integer -> Integer -> Integer -> Integer
+    sundays' y m n
+      | y > end   = n
+      | otherwise = rest
+        where
+        n'    = if dayOfWeek y m 1 == 1 then n + 1 else n
+        nextY = if m == 12 then y + 1 else y
+        nextM = if m == 12 then 1 else m + 1
+        rest = sundays' nextY nextM n'
 
 
 leap :: Integer -> Bool
