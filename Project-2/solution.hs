@@ -1,26 +1,24 @@
 import Data.Char
 
 data Color = Red | Black
-          deriving Eq
+          deriving (Eq,Show)
 data Suit  = Clubs | Diamonds | Hearts | Spades
-          deriving Eq
+          deriving (Eq,Show)
 data Rank  = Num Int | Jack | Queen | King | Ace
-          deriving Eq
+          deriving (Eq,Show)
 data Card  = Card { suit :: Suit, rank :: Rank }
-          deriving Eq
+          deriving (Eq,Show)
 data Move  = Draw | Discard Card
-          deriving Eq
-
------- ???????
+          deriving (Eq,Show)
 data State = End | Ongoing
-          deriving Eq
+          deriving (Eq,Show)
 
 cardColor :: Card -> Color
 cardColor c = case suit c of
-   Clubs      -> Red
-   Spades     -> Red
-   Diamonds   -> Black
-   Hearts     -> Black
+   Clubs      -> Black
+   Spades     -> Black
+   Diamonds   -> Red
+   Hearts     -> Red
 
 cardValue :: Card -> Int
 cardValue c = case rank c of
@@ -46,7 +44,7 @@ removeCard cs c = removeCardHelper cs c 0
 allSameColors :: [Card] -> Bool
 allSameColors [] = True
 allSameColors (x:[]) = True
-allSameColors (x:xs:xss) = case (cardColor x) /= (cardColor xs) of
+allSameColors (x:xs:xss) = case (cardColor x) == (cardColor xs) of
   False           -> False
   True            -> allSameColors (xs:xss)
 
@@ -63,17 +61,37 @@ score c g
   | otherwise   = preliminaryScoreSmaller
     where
       c' = sumCards c
-      preliminaryScoreGreater = if allSameColors c then 3 * c' - g else (3 * c' - g) `div` 2
-      preliminaryScoreSmaller = if allSameColors c then g - c' else g - c' `div` 2
+      preliminaryScoreGreater = if allSameColors c then (3 * c' - g) `div` 2 else (3 * c' - g)
+      preliminaryScoreSmaller = if allSameColors c then (g - c') `div` 2 else (g - c')
 
--- runGame :: [Card] -> [Move] -> Int -> Int
+-- User can end the game whenever she wants. Therefore, you have to change this function accordingly
+runGame :: [Card] -> [Move] -> Int -> Int
+runGame cs ms g = runGameHelper cs [] ms Ongoing
+  where
+    runGameHelper :: [Card] -> [Card] -> [Move] -> State -> Int
+    runGameHelper _ hcs _ End               = score hcs g
+    runGameHelper _ hcs [] Ongoing          = runGameHelper [] hcs [] End
+    runGameHelper cs' hcs (m':ms') Ongoing  = case m' of
+      (Discard c)     -> runGameHelperDiscardHelper cs' (removeCard hcs c) hcs ms'
+      (Draw)          -> runGameHelperDrawHelper cs' hcs ms'
 
+
+    runGameHelperDiscardHelper :: [Card] -> [Card] -> [Card] -> [Move] -> Int
+    runGameHelperDiscardHelper cs' removedCards originalCards ms'  = if removedCards == originalCards then error "No cards" else runGameHelper cs' removedCards  ms' Ongoing
+
+    runGameHelperDrawHelper :: [Card] -> [Card] -> [Move] -> Int
+    runGameHelperDrawHelper [] hcs ms'            = runGameHelper [] hcs [] End
+    runGameHelperDrawHelper (c':cs') hcs ms'      = if sumCards (c':hcs) > g then runGameHelper [] (c':hcs) [] End else runGameHelper cs' (c':hcs) ms' Ongoing
 
 convertSuit :: Char -> Suit
 convertSuit 'd' = Diamonds
+convertSuit 'D' = Diamonds
 convertSuit 'c' = Clubs
+convertSuit 'C' = Clubs
 convertSuit 's' = Spades
+convertSuit 'S' = Spades
 convertSuit 'h' = Hearts
+convertSuit 'H' = Hearts
 convertSuit  x  = error "Wrong input"
 
 
@@ -90,14 +108,10 @@ convertRank x
 convertCard :: Char -> Char -> Card
 convertCard s r =  Card (convertSuit s) (convertRank r)
 
-
-
-
-
 readCards :: IO([Card])
 readCards = do
   cardList <- readCards' ([]::[Card])
-  return cardList
+  return (reverse cardList)
     where
       readCards' :: [Card] -> IO([Card])
       readCards' cs = do
@@ -108,3 +122,45 @@ readCards = do
             let suit = head line
             let rank = head (tail line)
             readCards' ((convertCard suit rank) : cs)
+
+
+
+convertMove :: Char -> Char -> Char -> Move
+convertMove 'd' _ _ = Draw
+convertMove 'D' _ _ = Draw
+convertMove 'r' s c = Discard (convertCard s c)
+convertMove 'R' s c = Discard (convertCard s c)
+
+
+
+readMoves :: IO([Move])
+readMoves = do
+  moveList <- readMoves' ([]::[Move])
+  return (reverse moveList)
+    where
+      readMoves' :: [Move] -> IO([Move])
+      readMoves' ms = do
+        line <- getLine
+        if line == "."
+          then return ms
+          else do
+            let moveName = head line
+            let suitName = head (tail line)
+            let rankName = head (tail (tail line))
+            readMoves' ((convertMove moveName suitName rankName) : ms)
+
+
+
+main :: IO()
+main = do
+  putStrLn "Enter cards:"
+  cards <- readCards
+  putStrLn (show cards)
+  putStrLn "Enter moves:"
+  moves <- readMoves
+  putStrLn (show moves)
+  putStrLn "Enter goal:"
+  line <- getLine
+  let goal = read line :: Int
+  let score = runGame cards moves goal
+  putStrLn ("Score: " ++ show score)
