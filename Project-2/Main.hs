@@ -13,6 +13,7 @@ data Move  = Draw | Discard Card
 data State = End | Ongoing
           deriving (Eq,Show)
 
+
 cardColor :: Card -> Color
 cardColor c = case suit c of
    Clubs      -> Black
@@ -29,20 +30,13 @@ cardValue c = case rank c of
   Ace         -> 11
 
 removeCard :: [Card] -> Card -> [Card]
-removeCard cs c = removeCardHelper cs c 0
-  where
-    -- The integer is for checking if we find element or not
-    removeCardHelper :: [Card] -> Card -> Int -> [Card]
-    removeCardHelper [] x 1 = []
-    removeCardHelper [] x 0 = error "Not found"
-    removeCardHelper (c':cs') x y
-      | y == 1    = c' : removeCardHelper cs' x y
-      | c' == x   = removeCardHelper cs' x 1
-      | otherwise = c' : removeCardHelper cs' x y
+removeCard [] card = error "Card not in list"
+removeCard (c:cs) card
+  | c == card = cs
+  | otherwise = c : removeCard cs card
 
 
 allSameColors :: [Card] -> Bool
-allSameColors [] = True
 allSameColors (x:[]) = True
 allSameColors (x:xs:xss) = case (cardColor x) == (cardColor xs) of
   False           -> False
@@ -69,7 +63,7 @@ runGame :: [Card] -> [Move] -> Int -> Int
 runGame cs ms g = runGameHelper cs [] ms Ongoing (maxBound :: Int)
   where
     runGameHelper :: [Card] -> [Card] -> [Move] -> State -> Int ->Int
-    runGameHelper _ _ _ End minScore                = e
+    runGameHelper _ _ _ End minScore                = minScore
     runGameHelper _ hcs [] Ongoing minScore         = runGameHelper [] hcs [] End minScore
     runGameHelper cs' hcs (m':ms') Ongoing minScore = case m' of
       (Discard c)     -> runGameHelperDiscardHelper cs' (removeCard hcs c) hcs ms' minScore
@@ -108,6 +102,8 @@ convertRank x
 convertCard :: Char -> Char -> Card
 convertCard s r =  Card (convertSuit s) (convertRank r)
 
+
+
 readCards :: IO([Card])
 readCards = do
   cardList <- readCards' ([]::[Card])
@@ -116,9 +112,7 @@ readCards = do
       readCards' :: [Card] -> IO([Card])
       readCards' cs = do
         line <- getLine
-        if line == "."
-          then return cs
-          else do
+        if line == "." then return cs else do
             let suit = head line
             let rank = head (tail line)
             readCards' ((convertCard suit rank) : cs)
@@ -133,6 +127,7 @@ convertMove 'R' s c = Discard (convertCard s c)
 
 
 
+
 readMoves :: IO([Move])
 readMoves = do
   moveList <- readMoves' ([]::[Move])
@@ -141,9 +136,7 @@ readMoves = do
       readMoves' :: [Move] -> IO([Move])
       readMoves' ms = do
         line <- getLine
-        if line == "."
-          then return ms
-          else do
+        if line == "." then return ms else do
             let moveName = head line
             let suitName = head (tail line)
             let rankName = head (tail (tail line))
