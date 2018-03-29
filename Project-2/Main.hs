@@ -61,27 +61,27 @@ score c g
   | otherwise   = preliminaryScoreSmaller
     where
       c' = sumCards c
-      preliminaryScoreGreater = if allSameColors c then (3 * c' - g) `div` 2 else (3 * c' - g)
+      preliminaryScoreGreater = if allSameColors c then (3 * (c' - g)) `div` 2 else (3 * (c' - g))
       preliminaryScoreSmaller = if allSameColors c then (g - c') `div` 2 else (g - c')
 
--- User can end the game whenever she wants. Therefore, you have to change this function accordingly
+
 runGame :: [Card] -> [Move] -> Int -> Int
-runGame cs ms g = runGameHelper cs [] ms Ongoing
+runGame cs ms g = runGameHelper cs [] ms Ongoing (maxBound :: Int)
   where
-    runGameHelper :: [Card] -> [Card] -> [Move] -> State -> Int
-    runGameHelper _ hcs _ End               = score hcs g
-    runGameHelper _ hcs [] Ongoing          = runGameHelper [] hcs [] End
-    runGameHelper cs' hcs (m':ms') Ongoing  = case m' of
-      (Discard c)     -> runGameHelperDiscardHelper cs' (removeCard hcs c) hcs ms'
-      (Draw)          -> runGameHelperDrawHelper cs' hcs ms'
+    runGameHelper :: [Card] -> [Card] -> [Move] -> State -> Int ->Int
+    runGameHelper _ _ _ End minScore                = e
+    runGameHelper _ hcs [] Ongoing minScore         = runGameHelper [] hcs [] End minScore
+    runGameHelper cs' hcs (m':ms') Ongoing minScore = case m' of
+      (Discard c)     -> runGameHelperDiscardHelper cs' (removeCard hcs c) hcs ms' minScore
+      (Draw)          -> runGameHelperDrawHelper cs' hcs ms' minScore
 
 
-    runGameHelperDiscardHelper :: [Card] -> [Card] -> [Card] -> [Move] -> Int
-    runGameHelperDiscardHelper cs' removedCards originalCards ms'  = if removedCards == originalCards then error "No cards" else runGameHelper cs' removedCards  ms' Ongoing
+    runGameHelperDiscardHelper :: [Card] -> [Card] -> [Card] -> [Move] -> Int -> Int
+    runGameHelperDiscardHelper cs' removedCards originalCards ms' minScore  = if removedCards == originalCards then error "No cards" else runGameHelper cs' removedCards  ms' Ongoing (min (score removedCards g) minScore)
 
-    runGameHelperDrawHelper :: [Card] -> [Card] -> [Move] -> Int
-    runGameHelperDrawHelper [] hcs ms'            = runGameHelper [] hcs [] End
-    runGameHelperDrawHelper (c':cs') hcs ms'      = if sumCards (c':hcs) > g then runGameHelper [] (c':hcs) [] End else runGameHelper cs' (c':hcs) ms' Ongoing
+    runGameHelperDrawHelper :: [Card] -> [Card] -> [Move] -> Int -> Int
+    runGameHelperDrawHelper [] hcs ms'  minScore          = runGameHelper [] [] [] End minScore
+    runGameHelperDrawHelper (c':cs') hcs ms'  minScore    = if sumCards (c':hcs) > g then runGameHelper [] [] [] End (min (score (c':hcs) g) minScore) else runGameHelper cs' (c':hcs) ms' Ongoing (min (score (c':hcs) g) minScore)
 
 convertSuit :: Char -> Suit
 convertSuit 'd' = Diamonds
