@@ -5,7 +5,7 @@ import Data.Char
 
 data WordInput  = WordInput {contentWord :: [Char]}
           deriving (Eq,Show)
-data Sentence  = Sentence {contentSentence :: [Word]}
+data Sentence  = Sentence {contentSentence :: [WordInput]}
           deriving (Eq,Show)
 data CharacterCount  = CharacterCount {contentCC :: M.Map Char Int}
           deriving (Eq,Show)
@@ -25,3 +25,9 @@ wordCharCounts x = CharacterCount{ contentCC = wordCharCountsHelper (lowerChange
     wordCharCountsHelper originalList (elmnt:nList) =  M.insert elmnt (charNum originalList elmnt) $ wordCharCountsHelper originalList nList
     --------------------------------------------
     charNum s k = length $ filter (== k) s
+
+sentenceCharCounts :: Sentence -> CharacterCount
+sentenceCharCounts sentence = CharacterCount { contentCC =  sentenceCharCountsHelper $ contentSentence sentence }
+    where
+      sentenceCharCountsHelper [] = M.empty
+      sentenceCharCountsHelper (wrdList:wrdList') = M.unionWith (+) (contentCC $ wordCharCounts wrdList) (sentenceCharCountsHelper wrdList')
