@@ -28,6 +28,13 @@ wordCharCounts x = CharacterCount{ contentCC = wordCharCountsHelper (lowerChange
 
 sentenceCharCounts :: Sentence -> CharacterCount
 sentenceCharCounts sentence = CharacterCount { contentCC =  sentenceCharCountsHelper $ contentSentence sentence }
-    where
-      sentenceCharCountsHelper [] = M.empty
-      sentenceCharCountsHelper (wrdList:wrdList') = M.unionWith (+) (contentCC $ wordCharCounts wrdList) (sentenceCharCountsHelper wrdList')
+  where
+    sentenceCharCountsHelper [] = M.empty
+    sentenceCharCountsHelper (wrdList:wrdList') = M.unionWith (+) (contentCC $ wordCharCounts wrdList) (sentenceCharCountsHelper wrdList')
+
+
+dictCharCounts :: [WordInput] -> M.Map [Char] (M.Map Char Int)
+dictCharCounts wordList = dictCharCountsHelper wordList
+  where
+    dictCharCountsHelper [] = M.empty
+    dictCharCountsHelper (wrdList:wrdList') = M.insert (contentWord wrdList) (contentCC $ wordCharCounts wrdList) $ dictCharCountsHelper wrdList'
