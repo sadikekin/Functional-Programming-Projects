@@ -1,4 +1,5 @@
 import Data.Map (Map, (!))
+import System.Environment
 import qualified Data.Map as M
 import qualified Data.List as L
 import Data.Char
@@ -92,3 +93,7 @@ subtractCounts ccOne ccTwo = CharacterCount { contentCC = subtractCountsHelper (
     subtractCountsHelper ccOne'  (ccTwo':ccTwos')   = subtractCountsHelper currentCCOne ccTwos'
       where
         currentCCOne = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
+
+main = do
+  arg <- getArgs
+  putStrLn $ show arg
