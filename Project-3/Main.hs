@@ -94,6 +94,10 @@ subtractCounts ccOne ccTwo = CharacterCount { contentCC = subtractCountsHelper (
       where
         currentCCOne = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
 
+
 main = do
   arg <- getArgs
   putStrLn $ show arg
+
+  file <- readFile "words.txt"
+  putStrLn file
