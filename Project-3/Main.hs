@@ -45,6 +45,37 @@ dictWordsByCharCounts fListMap = dictWordsByCharCountsSwapKeysWithValues (M.keys
 wordAnagrams :: M.Map CharacterCount [WordInput] -> WordInput -> [WordInput]
 wordAnagrams fListMap w = fListMap ! (wordCharCounts w)
 
+-- charCountsSubsets :: CharacterCount -> [CharacterCount]
+charCountsSubsets :: CharacterCount -> [CharacterCount]
+charCountsSubsets cCount =  L.nub $ subSetArrayToMap $ charCountsSubsetsHelper (length flatterVersion) (flatterVersion)
+  where
+    flatterVersion = flatter $ M.toList $ contentCC cCount
+    --------------------------------------------
+    -- Flatter function evolves [('a',2)] to [('a',1),('a',1)]
+    flatter (x:xs) = if xs /= [] then flatterRecursive (fst x) (snd x) ++ flatter xs else flatterRecursive (fst x) (snd x)
+      where
+        flatterRecursive _  0 = []
+        flatterRecursive f s  = (f, 1) : flatterRecursive f (s-1)
+    --------------------------------------------
+    charCountsSubsetsHelper 0 _           = [[]]
+    charCountsSubsetsHelper number cCount = subSet number cCount ++ charCountsSubsetsHelper (number-1) cCount
+    --------------------------------------------
+    -- Created all posible subsets for given array of tuples.
+    subSet number set = take (lenSet-number+1) (subSetHelper number set)
+      where
+        lenSet = length set
+        --------------------------------------
+        subSetHelper _ []     = [[]]
+        subSetHelper num' (b:bs) = take num' (b:bs) : subSetHelper num' bs
+    --------------------------------------------
+    subSetArrayToMap []     = [CharacterCount { contentCC = M.empty }]
+    subSetArrayToMap (a:as) = CharacterCount { contentCC = subSetArrayToMapHelper a }  : subSetArrayToMap as
+      where
+        subSetArrayToMapHelper []     = M.empty
+        subSetArrayToMapHelper (l:ls) = M.insertWith (+) (fst l) (snd l) (subSetArrayToMapHelper ls)
+
+
+
 
 subtractCounts :: CharacterCount -> CharacterCount -> CharacterCount
 subtractCounts ccOne ccTwo = CharacterCount { contentCC = subtractCountsHelper (contentCC ccOne) (flatter $ M.toList $ contentCC ccTwo) }
