@@ -1,5 +1,6 @@
 import Data.Map (Map, (!))
 import System.Environment
+import Data.List.Split
 import qualified Data.Map as M
 import qualified Data.List as L
 import Data.Char
@@ -59,15 +60,15 @@ charCountsSubsets cCount                  = (L.nub . subSetArrayToMap) $ charCou
     --------------------------------------------
     charCountsSubsetsHelper 0 _           = [[]]
     charCountsSubsetsHelper number cc = subSet number cc ++ charCountsSubsetsHelper (number-1) cc
-    ---------------------------------------------
+    --------------------------------------------
     -- Created all posible subsets for given array of tuples.
     subSet number set                     = take (lenSet-number+1) (subSetHelper number set)
       where
         lenSet = length set
-        --------------------------------------
+        ----------------------------------------
         subSetHelper _ []                 = [[]]
         subSetHelper num' (b:bs)          = take num' (b:bs) : subSetHelper num' bs
-    ---------------------------------------------
+    --------------------------------------------
     subSetArrayToMap []                   = [M.empty]
     subSetArrayToMap (a:as)               = subSetArrayToMapHelper a : subSetArrayToMap as
       where
@@ -91,18 +92,25 @@ subtractCounts ccOne ccTwo                          = subtractCountsHelper ccOne
       where
         currentCCOne                                = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
 
-
-sentenceAnagrams :: Sentence -> [String]
-sentenceAnagrams s                          = stringCreator (concat s) 0 ""
+-- This finds every single possible sentence that we can create from given sentence
+sentenceAnagrams :: Sentence -> [Sentence]
+sentenceAnagrams s                          = L.nub (spaceAdder (stringCreator (concat s) 0 ""))
   where
-
-    stringCreatorHelper x currentString  = stringCreator x 0 currentString
-
+    stringCreatorHelper x currentString     = stringCreator x 0 currentString
+    --------------------------------------------
     stringCreator [] _ currentString  = [currentString]
     stringCreator xt@(x:xs) currentIndex currentString
       | currentIndex == length xt           = []
       | otherwise                           = stringCreatorHelper xs ([x]++currentString) ++ stringCreator (xs ++ [x]) (currentIndex+1) currentString
-
+    --------------------------------------------
+    spaceAdder [] = []
+    spaceAdder (x:xs) = spaceAdderHelper (length x - 1) ++ spaceAdder xs
+      where
+        spaceAdderHelper 0 = []
+        spaceAdderHelper delimeterNum = ( (sentenceChanger . L.permutations) $ x ++ replicate delimeterNum ' ' )  ++ spaceAdderHelper (delimeterNum-1)
+        ----------------------------------------
+        sentenceChanger [] = []
+        sentenceChanger (kl:kl') = [x | x <- splitOn " " kl, x /= ""] : sentenceChanger kl'
 
 main = do
   arg <- getArgs
