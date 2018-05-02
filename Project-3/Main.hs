@@ -5,9 +5,9 @@ import qualified Data.List as L
 import Data.Char
 import Control.Monad.Fix
 
-type WordInput  = [Char]
-type Sentence  = [WordInput]
-type CharacterCount  = M.Map Char Int
+type WordInput        = [Char]
+type Sentence         = [WordInput]
+type CharacterCount   = M.Map Char Int
 
 
 wordCharCounts :: WordInput ->  CharacterCount
@@ -19,6 +19,7 @@ wordCharCounts x = wordCharCountsHelper (lowerChanger x) ((L.nub . lowerChanger)
     wordCharCountsHelper originalList (elmnt:nList) = M.insert elmnt (charNum originalList elmnt) $ wordCharCountsHelper originalList nList
     --------------------------------------------
     charNum s k                                     = length $ filter (\z -> z == k) s
+
 
 sentenceCharCounts :: Sentence -> CharacterCount
 sentenceCharCounts sentence                     = sentenceCharCountsHelper sentence
@@ -33,6 +34,7 @@ dictCharCounts wordList                     = dictCharCountsHelper wordList
     dictCharCountsHelper []                 = M.empty
     dictCharCountsHelper (wrdList:wrdList') = M.insert (wrdList) (wordCharCounts wrdList) $ dictCharCountsHelper wrdList'
 
+
 dictWordsByCharCounts :: M.Map WordInput CharacterCount -> M.Map CharacterCount Sentence
 dictWordsByCharCounts fListMap                            = dictWordsByCharCountsSwapKeysWithValues (M.keys fListMap) (M.elems fListMap)
   where
@@ -42,6 +44,7 @@ dictWordsByCharCounts fListMap                            = dictWordsByCharCount
 
 wordAnagrams :: M.Map CharacterCount Sentence -> WordInput -> Sentence
 wordAnagrams fListMap w                   = fListMap ! (wordCharCounts w)
+
 
 charCountsSubsets :: CharacterCount -> [CharacterCount]
 charCountsSubsets cCount                  = (L.nub . subSetArrayToMap) $ charCountsSubsetsHelper (length flatterVersion) (flatterVersion)
@@ -56,7 +59,7 @@ charCountsSubsets cCount                  = (L.nub . subSetArrayToMap) $ charCou
     --------------------------------------------
     charCountsSubsetsHelper 0 _           = [[]]
     charCountsSubsetsHelper number cc = subSet number cc ++ charCountsSubsetsHelper (number-1) cc
-    -- --------------------------------------------
+    ---------------------------------------------
     -- Created all posible subsets for given array of tuples.
     subSet number set                     = take (lenSet-number+1) (subSetHelper number set)
       where
@@ -64,7 +67,7 @@ charCountsSubsets cCount                  = (L.nub . subSetArrayToMap) $ charCou
         --------------------------------------
         subSetHelper _ []                 = [[]]
         subSetHelper num' (b:bs)          = take num' (b:bs) : subSetHelper num' bs
-    -- --------------------------------------------
+    ---------------------------------------------
     subSetArrayToMap []                   = [M.empty]
     subSetArrayToMap (a:as)               = subSetArrayToMapHelper a : subSetArrayToMap as
       where
@@ -73,20 +76,32 @@ charCountsSubsets cCount                  = (L.nub . subSetArrayToMap) $ charCou
 
 
 subtractCounts :: CharacterCount -> CharacterCount -> CharacterCount
-subtractCounts ccOne ccTwo = subtractCountsHelper ccOne $ (flatter . M.toList) ccTwo
+subtractCounts ccOne ccTwo                          = subtractCountsHelper ccOne $ (flatter . M.toList) ccTwo
   where
     -- Flatter function evolves [('a',2)] to [('a',1),('a',1)]
-    flatter (x:xs) = if xs /= [] then flatterRecursive (fst x) (snd x) ++ flatter xs else flatterRecursive (fst x) (snd x)
+    flatter (x:xs)                                  = if xs /= [] then flatterRecursive (fst x) (snd x) ++ flatter xs else flatterRecursive (fst x) (snd x)
       where
-        flatterRecursive _  0 = []
-        flatterRecursive f s = (f, 1) : flatterRecursive f (s-1)
+        flatterRecursive _  0                       = []
+        flatterRecursive f s                        = (f, 1) : flatterRecursive f (s-1)
     --------------------------------------------
-    removerFunc k e = if e > 1 then Just (e-1) else Nothing
+    removerFunc k e                                 = if e > 1 then Just (e-1) else Nothing
     --------------------------------------------
     subtractCountsHelper ccOne'  (ccTwo':[])        = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
     subtractCountsHelper ccOne'  (ccTwo':ccTwos')   = subtractCountsHelper currentCCOne ccTwos'
       where
-        currentCCOne = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
+        currentCCOne                                = M.updateWithKey removerFunc (fst ccTwo') (ccOne')
+
+
+sentenceAnagrams :: Sentence -> [String]
+sentenceAnagrams s                          = stringCreator (concat s) 0 ""
+  where
+
+    stringCreatorHelper x currentString  = stringCreator x 0 currentString
+
+    stringCreator [] _ currentString  = [currentString]
+    stringCreator xt@(x:xs) currentIndex currentString
+      | currentIndex == length xt           = []
+      | otherwise                           = stringCreatorHelper xs ([x]++currentString) ++ stringCreator (xs ++ [x]) (currentIndex+1) currentString
 
 
 main = do
