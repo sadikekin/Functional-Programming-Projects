@@ -96,6 +96,7 @@ subtractCounts ccOne ccTwo                          = subtractCountsHelper ccOne
 -- This finds every single possible sentence that we can create from given sentence
 sentenceAnagrams :: Sentence -> [Sentence]
 sentenceAnagrams s
+  | length s == 0                           = []
   | length s == 1 && length (s!!0)  == 1    = [s]
   | otherwise                               = (L.nub . spaceAdder) $ stringCreator [toLower x | x <- concat s] 0 ""
   where
@@ -107,11 +108,8 @@ sentenceAnagrams s
       | otherwise                           = stringCreatorHelper xs ([x]++currentString) ++ stringCreator (xs ++ [x]) (currentIndex+1) currentString
     --------------------------------------------
     spaceAdder []                           = []
-    spaceAdder (x:xs)                       = spaceAdderHelper (length x - 1) ++ spaceAdder xs
+    spaceAdder (x:xs)                       = sentenceChanger ( L.permutations (x ++  replicate (length x - 1) ' ') )
       where
-        spaceAdderHelper 0                  = []
-        spaceAdderHelper delimeterNum       = ( (sentenceChanger . L.permutations) $ x ++ replicate delimeterNum ' ' )  ++ spaceAdderHelper (delimeterNum-1)
-        ----------------------------------------
         sentenceChanger []                  = []
         sentenceChanger (kl:kl')            = [x | x <- splitOn " " kl, x /= ""] : sentenceChanger kl'
 
@@ -126,13 +124,22 @@ anagramFinder (anagramSentence:allAnagrams) wordList = anagramFinderHelper anagr
       | s == w                                       = anagramFinderHelper s' wordList
       | otherwise                                    = anagramFinderHelper st w'
 
+printValues :: [Sentence] -> IO ()
+printValues [] = return ()
+printValues (x:xs) = do
+  putStrLn ("xd")
+  printValues xs
+
+
 main = do
   arg <- getArgs
   file <- readFile "words.txt"
   let wordsArray =  [ [toLower y | y <- x] | x <- (splitOn "\n" file), x /= "" ]
 
   let allPossibleString = sentenceAnagrams $ splitOn " " (arg !! 0)
-
-  let resultArray = [ x | x <- (anagramFinder allPossibleString wordsArray), x /= [""] ]
-  
-  putStrLn (show resultArray)
+  putStrLn "allPossibleString is done!"
+  let result = (anagramFinder allPossibleString wordsArray)
+  putStrLn "result is calculated!"
+  let resultWithOutEmptyValues = [ x | x <- result, x /= [""] ]
+  putStrLn "resultWithOutEmptyValues is calculated!"
+  printValues resultWithOutEmptyValues
