@@ -14,6 +14,7 @@ type CharacterCount   = M.Map Char Int
 wordCharCounts :: WordInput ->  CharacterCount
 wordCharCounts x = wordCharCountsHelper (lowerChanger x) ((L.nub . lowerChanger) x)
   where
+    lowerChanger []                                 = []
     lowerChanger (h:h')                             = if h' == [] then [h] else (toLower h) : (lowerChanger h')
     --------------------------------------------
     wordCharCountsHelper _ []                       = M.empty
@@ -94,27 +95,44 @@ subtractCounts ccOne ccTwo                          = subtractCountsHelper ccOne
 
 -- This finds every single possible sentence that we can create from given sentence
 sentenceAnagrams :: Sentence -> [Sentence]
-sentenceAnagrams s                          = L.nub (spaceAdder (stringCreator (concat s) 0 ""))
+sentenceAnagrams s
+  | length s == 1 && length (s!!0)  == 1    = [s]
+  | otherwise                               = (L.nub . spaceAdder) $ stringCreator [toLower x | x <- concat s] 0 ""
   where
     stringCreatorHelper x currentString     = stringCreator x 0 currentString
     --------------------------------------------
-    stringCreator [] _ currentString  = [currentString]
+    stringCreator [] _ currentString        = [currentString]
     stringCreator xt@(x:xs) currentIndex currentString
       | currentIndex == length xt           = []
       | otherwise                           = stringCreatorHelper xs ([x]++currentString) ++ stringCreator (xs ++ [x]) (currentIndex+1) currentString
     --------------------------------------------
-    spaceAdder [] = []
-    spaceAdder (x:xs) = spaceAdderHelper (length x - 1) ++ spaceAdder xs
+    spaceAdder []                           = []
+    spaceAdder (x:xs)                       = spaceAdderHelper (length x - 1) ++ spaceAdder xs
       where
-        spaceAdderHelper 0 = []
-        spaceAdderHelper delimeterNum = ( (sentenceChanger . L.permutations) $ x ++ replicate delimeterNum ' ' )  ++ spaceAdderHelper (delimeterNum-1)
+        spaceAdderHelper 0                  = []
+        spaceAdderHelper delimeterNum       = ( (sentenceChanger . L.permutations) $ x ++ replicate delimeterNum ' ' )  ++ spaceAdderHelper (delimeterNum-1)
         ----------------------------------------
-        sentenceChanger [] = []
-        sentenceChanger (kl:kl') = [x | x <- splitOn " " kl, x /= ""] : sentenceChanger kl'
+        sentenceChanger []                  = []
+        sentenceChanger (kl:kl')            = [x | x <- splitOn " " kl, x /= ""] : sentenceChanger kl'
+
+anagramFinder :: [Sentence] -> [String] -> [Sentence]
+anagramFinder [] _                                   = []
+anagramFinder (anagramSentence:allAnagrams) wordList = anagramFinderHelper anagramSentence wordList : anagramFinder allAnagrams wordList
+  where
+    anagramFinderHelper :: Sentence -> [String]-> Sentence
+    anagramFinderHelper [] _                         = anagramSentence
+    anagramFinderHelper _ []                         = [""]
+    anagramFinderHelper st@(s:s') (w:w')
+      | s == w                                       = anagramFinderHelper s' wordList
+      | otherwise                                    = anagramFinderHelper st w'
 
 main = do
   arg <- getArgs
-  putStrLn $ show arg
-
   file <- readFile "words.txt"
-  putStrLn file
+  let wordsArray =  [ [toLower y | y <- x] | x <- (splitOn "\n" file), x /= "" ]
+
+  let allPossibleString = sentenceAnagrams $ splitOn " " (arg !! 0)
+
+  let resultArray = [ x | x <- (anagramFinder allPossibleString wordsArray), x /= [""] ]
+  
+  putStrLn (show resultArray)
