@@ -124,11 +124,11 @@ anagramFinder (anagramSentence:allAnagrams) wordList = anagramFinderHelper anagr
       | s == w                                       = anagramFinderHelper s' wordList
       | otherwise                                    = anagramFinderHelper st w'
 
-printValues :: [Sentence] -> IO ()
+printValues :: [[String]] -> IO ()
 printValues [] = return ()
 printValues (x:xs) = do
-  putStrLn ("xd")
-  printValues xs
+  putStrLn $ L.intercalate " " x
+  printValues (xs)
 
 
 main = do
@@ -140,6 +140,14 @@ main = do
   putStrLn "allPossibleString is done!"
   let result = (anagramFinder allPossibleString wordsArray)
   putStrLn "result is calculated!"
-  let resultWithOutEmptyValues = [ x | x <- result, x /= [""] ]
+  putStrLn $ show result
+  let resultWithOutEmptyValues = filter (\x -> x /=  [""]) result
   putStrLn "resultWithOutEmptyValues is calculated!"
   printValues resultWithOutEmptyValues
+
+
+-- In my implementation,
+-- 1- I have find all possible anagram of given sentenceChanger
+-- 2- Check them one by one the words in sentece is meaningful or not.
+-- 3- If the sentece is meaningful it stays,else change it with [""]
+-- 4- finalley filter the result array for removing [""]
