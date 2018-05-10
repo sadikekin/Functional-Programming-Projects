@@ -8,26 +8,50 @@ import Prelude hiding (Word)
 
 
 data Trie = Trie {end :: Bool, children :: M.Map Char Trie}
+  deriving (Show, Eq)
 type Word = String
 
 
-empty :: Trie
-empty = undefined
+empty :: Bool -> Trie
+empty withEndValue = Trie {end = withEndValue, children = M.empty}
 
 insert :: Word -> Trie -> Trie
-insert = undefined
+insert [] t = Trie {end = True, children = children t}
+insert (w:ws) t
+  | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws ( (children t) M.! w )) (children t) }
+  | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws (( M.insert w (empty False) (children t) ) M.! w)) (children t) }
 
 insertList :: [Word] -> Trie
-insertList = undefined
+insertList w = foldr insert (empty False) w
 
-search :: Word -> Trie -> Bool
-search = undefined
+-- search :: Word -> Trie -> Bool
+-- search = undefined
 
-getWords :: Trie -> [Word]
-getWords = undefined
 
-prefix :: Word -> Trie -> Maybe [Word]
-prefix = undefined
+--
+-- getWords :: Trie -> [Word]
+-- getWords = undefined
+--
+-- prefix :: Word -> Trie -> Maybe [Word]
+-- prefix = undefined
+
+takeInputsFromUser :: Trie -> IO()
+takeInputsFromUser dictTrie = do
+  -- Reading the users input and acting according to it
+  action <- getLine
+
+  if action == "a" then
+    takeInputsFromUser dictTrie
+  else if action == "s" then
+    takeInputsFromUser dictTrie
+  else if action == "f" then
+    takeInputsFromUser dictTrie
+  else if action == "p" then
+    takeInputsFromUser dictTrie
+  else if action == "e" then
+    return ()
+  else
+    error "Wrong Input"
 
 
 main = do
@@ -46,18 +70,8 @@ main = do
   putStrLn "e) Exit"
   putStrLn "Enter the action: "
 
-  -- Reading the users input and acting according to it
-  action <- getLine
+  -- Changing words array to Trie
+  let dictTrie = insertList wordsArray
+  takeInputsFromUser dictTrie
 
-  if action == "a" then
-    putStrLn "Add"
-  else if action == "s" then
-    putStrLn "Search"
-  else if action == "f" then
-    putStrLn "Find"
-  else if action == "p" then
-    putStrLn "Print"
-  else if action == "e" then
-    putStrLn "Exit"
-  else
-    error "Wrong Input"
+  putStrLn "Final"
