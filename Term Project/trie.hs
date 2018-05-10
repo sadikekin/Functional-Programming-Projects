@@ -13,21 +13,39 @@ type Word = String
 
 empty :: Trie
 empty = undefined
+--
+-- insert :: Word -> Trie -> Trie
+-- insert = undefined
+--
+-- insertList :: [Word] -> Trie
+-- insertList = undefined
+--
+-- search :: Word -> Trie -> Bool
+-- search = undefined
+--
+-- getWords :: Trie -> [Word]
+-- getWords = undefined
+--
+-- prefix :: Word -> Trie -> Maybe [Word]
+-- prefix = undefined
 
-insert :: Word -> Trie -> Trie
-insert = undefined
 
-insertList :: [Word] -> Trie
-insertList = undefined
+takeInputs = do
+  -- Reading the users input and acting according to it
+  action <- getLine
 
-search :: Word -> Trie -> Bool
-search = undefined
-
-getWords :: Trie -> [Word]
-getWords = undefined
-
-prefix :: Word -> Trie -> Maybe [Word]
-prefix = undefined
+  if action == "a" then
+    takeInputs
+  else if action == "s" then
+    takeInputs
+  else if action == "f" then
+    takeInputs
+  else if action == "p" then
+    takeInputs
+  else if action == "e" then
+    return ()
+  else
+    error "Wrong Input"
 
 
 main = do
@@ -45,19 +63,5 @@ main = do
   putStrLn "p) Print all words"
   putStrLn "e) Exit"
   putStrLn "Enter the action: "
-
-  -- Reading the users input and acting according to it
-  action <- getLine
-
-  if action == "a" then
-    putStrLn "Add"
-  else if action == "s" then
-    putStrLn "Search"
-  else if action == "f" then
-    putStrLn "Find"
-  else if action == "p" then
-    putStrLn "Print"
-  else if action == "e" then
-    putStrLn "Exit"
-  else
-    error "Wrong Input"
+  
+  takeInputs
