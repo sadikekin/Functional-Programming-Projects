@@ -8,14 +8,20 @@ import Prelude hiding (Word)
 
 
 data Trie = Trie {end :: Bool, children :: M.Map Char Trie}
+  deriving (Show, Eq)
 type Word = String
 
 
 empty :: Trie
-empty = undefined
---
--- insert :: Word -> Trie -> Trie
--- insert = undefined
+empty = Trie {end = False, children = M.empty}
+
+insert :: Word -> Trie -> Trie
+insert (w:[]) t
+  | M.lookup w (children t) /= Nothing    = Trie {end = True, children = children t}
+  | otherwise                             = Trie {end = True, children = M.insert w empty (children t)}
+insert (w:ws) t
+  | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws  ( ( (M.!) . children )  t  w ) )  (children t)  }
+  | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws t) (children t) }
 --
 -- insertList :: [Word] -> Trie
 -- insertList = undefined
@@ -63,5 +69,5 @@ main = do
   putStrLn "p) Print all words"
   putStrLn "e) Exit"
   putStrLn "Enter the action: "
-  
+
   takeInputs
