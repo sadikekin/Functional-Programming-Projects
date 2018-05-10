@@ -1,4 +1,5 @@
 import qualified Data.Map as M
+import qualified Data.List as L
 import Data.Maybe
 import System.Environment
 import System.IO
@@ -28,13 +29,25 @@ search :: Word -> Trie -> Bool
 search (w:[]) t = if M.lookup w (children t) == Nothing then False else  end $ (children t) M.! w
 search (w:ws) t = if M.lookup w (children t) == Nothing then False else search ws ((children t) M.! w)
 
+getWords :: Trie -> [Word]
+getWords t = getWordsHelper t  "" []
+  where
+    getWordsHelper :: Trie -> Word -> [Word] -> [Word]
+    getWordsHelper t' currentWord wList
+      | M.null $ children t'    = wList
+      | otherwise               = childrenIterator (M.toList $ children t') currentWord wList
 
---
--- getWords :: Trie -> [Word]
--- getWords = undefined
+    -- childrenIterator :: [()] -> Word -> [Word]
+    childrenIterator [] _ wList = wList
+    childrenIterator (x:xs) currentWord wList
+      | end $ snd x             = childrenIterator xs currentWord (nodeWord : wList) ++ getWordsHelper (snd x) nodeWord (nodeWord : wList)
+      | otherwise               = childrenIterator xs currentWord wList ++ getWordsHelper (snd x) nodeWord wList
+        where
+          nodeWord              = currentWord ++ [(fst x)]
 --
 -- prefix :: Word -> Trie -> Maybe [Word]
 -- prefix = undefined
+
 
 takeInputsFromUser :: Trie -> IO()
 takeInputsFromUser dictTrie = do
@@ -42,21 +55,31 @@ takeInputsFromUser dictTrie = do
   action <- getLine
 
   if action == "a" then do
+
     putStrLn "Please enter the word: "
     wordUser <- getLine
     let newTrie = insert wordUser dictTrie
     putStrLn "Got it. I am ready for your next instruction!"
     takeInputsFromUser newTrie
+
   else if action == "s" then do
+
     putStrLn "Please enter the word: " -- Here we should search for prefix as well.
     wordUser <- getLine
     if search wordUser dictTrie then do putStrLn "Exists in dictionary!" else do putStrLn "Does not exist in dictionary!"
     putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
+
   else if action == "f" then
     takeInputsFromUser dictTrie
-  else if action == "p" then
+  else if action == "p" then do
+
+    putStrLn "Words are "
+    let allWords = concat $ L.intersperse "\n" (reverse $ L.nub $ getWords dictTrie)
+    putStrLn allWords
+    putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
+    
   else if action == "e" then
     return ()
   else
