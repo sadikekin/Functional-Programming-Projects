@@ -22,9 +22,9 @@ insert (w:[]) t
 insert (w:ws) t
   | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws  ( ( (M.!) . children )  t  w ) )  (children t)  }
   | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws t) (children t) }
---
--- insertList :: [Word] -> Trie
--- insertList = undefined
+
+insertList :: [Word] -> Trie
+insertList w = foldr insert empty w
 --
 -- search :: Word -> Trie -> Bool
 -- search = undefined
