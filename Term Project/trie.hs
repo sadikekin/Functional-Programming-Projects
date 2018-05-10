@@ -41,9 +41,17 @@ takeInputsFromUser dictTrie = do
   -- Reading the users input and acting according to it
   action <- getLine
 
-  if action == "a" then
-    takeInputsFromUser dictTrie
-  else if action == "s" then
+  if action == "a" then do
+    putStrLn "Please enter the word: "
+    wordUser <- getLine
+    let newTrie = insert wordUser dictTrie
+    putStrLn "Got it. I am ready for your next instruction!"
+    takeInputsFromUser newTrie
+  else if action == "s" then do
+    putStrLn "Please enter the word: " -- Here we should search for prefix as well.
+    wordUser <- getLine
+    if search wordUser dictTrie then do putStrLn "Exists in dictionary!" else do putStrLn "Does not exist in dictionary!"
+    putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
   else if action == "f" then
     takeInputsFromUser dictTrie
@@ -74,5 +82,3 @@ main = do
   -- Changing words array to Trie
   let dictTrie = insertList wordsArray
   takeInputsFromUser dictTrie
-
-  putStrLn "Final"
