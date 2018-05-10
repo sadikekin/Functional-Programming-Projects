@@ -16,7 +16,7 @@ empty :: Bool -> Trie
 empty withEndValue = Trie {end = withEndValue, children = M.empty}
 
 insert :: Word -> Trie -> Trie
-insert [] t = Trie {end = True, children = children t}
+insert [] t                               = Trie {end = True, children = children t}
 insert (w:ws) t
   | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws ( (children t) M.! w )) (children t) }
   | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws (( M.insert w (empty False) (children t) ) M.! w)) (children t) }
@@ -24,8 +24,9 @@ insert (w:ws) t
 insertList :: [Word] -> Trie
 insertList w = foldr insert (empty False) w
 
--- search :: Word -> Trie -> Bool
--- search = undefined
+search :: Word -> Trie -> Bool
+search (w:[]) t = if M.lookup w (children t) == Nothing then False else  end $ (children t) M.! w
+search (w:ws) t = if M.lookup w (children t) == Nothing then False else search ws ((children t) M.! w)
 
 
 --
