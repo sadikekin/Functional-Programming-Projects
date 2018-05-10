@@ -12,22 +12,22 @@ data Trie = Trie {end :: Bool, children :: M.Map Char Trie}
 type Word = String
 
 
-empty :: Trie
-empty = Trie {end = False, children = M.empty}
+empty :: Bool -> Trie
+empty withEndValue = Trie {end = withEndValue, children = M.empty}
 
 insert :: Word -> Trie -> Trie
-insert (w:[]) t
-  | M.lookup w (children t) /= Nothing    = Trie {end = True, children = children t}
-  | otherwise                             = Trie {end = True, children = M.insert w empty (children t)}
+insert [] t = Trie {end = True, children = children t}
 insert (w:ws) t
-  | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws  ( ( (M.!) . children )  t  w ) )  (children t)  }
-  | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws t) (children t) }
+  | M.lookup w (children t) /= Nothing    = Trie { end = end t, children =  M.insert w (insert ws ( (children t) M.! w )) (children t) }
+  | otherwise                             = Trie { end = end t, children =  M.insert w (insert ws (( M.insert w (empty False) (children t) ) M.! w)) (children t) }
 
 insertList :: [Word] -> Trie
-insertList w = foldr insert empty w
---
+insertList w = foldr insert (empty False) w
+
 -- search :: Word -> Trie -> Bool
 -- search = undefined
+
+
 --
 -- getWords :: Trie -> [Word]
 -- getWords = undefined
@@ -35,19 +35,19 @@ insertList w = foldr insert empty w
 -- prefix :: Word -> Trie -> Maybe [Word]
 -- prefix = undefined
 
-
-takeInputs = do
+takeInputsFromUser :: Trie -> IO()
+takeInputsFromUser dictTrie = do
   -- Reading the users input and acting according to it
   action <- getLine
 
   if action == "a" then
-    takeInputs
+    takeInputsFromUser dictTrie
   else if action == "s" then
-    takeInputs
+    takeInputsFromUser dictTrie
   else if action == "f" then
-    takeInputs
+    takeInputsFromUser dictTrie
   else if action == "p" then
-    takeInputs
+    takeInputsFromUser dictTrie
   else if action == "e" then
     return ()
   else
@@ -70,4 +70,8 @@ main = do
   putStrLn "e) Exit"
   putStrLn "Enter the action: "
 
-  takeInputs
+  -- Changing words array to Trie
+  let dictTrie = insertList wordsArray
+  takeInputsFromUser dictTrie
+
+  putStrLn "Final"
