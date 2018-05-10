@@ -37,16 +37,17 @@ getWords t = getWordsHelper t  "" []
       | M.null $ children t'    = wList
       | otherwise               = childrenIterator (M.toList $ children t') currentWord wList
 
-    -- childrenIterator :: [()] -> Word -> [Word]
     childrenIterator [] _ wList = wList
     childrenIterator (x:xs) currentWord wList
       | end $ snd x             = childrenIterator xs currentWord (nodeWord : wList) ++ getWordsHelper (snd x) nodeWord (nodeWord : wList)
       | otherwise               = childrenIterator xs currentWord wList ++ getWordsHelper (snd x) nodeWord wList
         where
           nodeWord              = currentWord ++ [(fst x)]
---
--- prefix :: Word -> Trie -> Maybe [Word]
--- prefix = undefined
+
+prefix :: Word -> Trie -> Maybe [Word]
+prefix w t =  if output == [] then Nothing else Just output
+   where
+    output = [ x | x <- (reverse $ L.nub $ getWords t), (take (length w) x) == w]
 
 
 takeInputsFromUser :: Trie -> IO()
@@ -64,13 +65,23 @@ takeInputsFromUser dictTrie = do
 
   else if action == "s" then do
 
-    putStrLn "Please enter the word: " -- Here we should search for prefix as well.
+    putStrLn "Please enter a word: " -- Here we should search for prefix as well.
     wordUser <- getLine
     if search wordUser dictTrie then do putStrLn "Exists in dictionary!" else do putStrLn "Does not exist in dictionary!"
     putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
 
-  else if action == "f" then
+  else if action == "f" then do
+
+    putStrLn "Please enter a word/prefix: "
+    pre <- getLine
+    let foundPrefixes = fromMaybe [] (prefix pre dictTrie)
+    if foundPrefixes == [] then do
+      putStrLn "No words found with that prefix!"
+    else do
+      putStrLn "Found words"
+      putStrLn $ concat $ L.intersperse "\n" (foundPrefixes)
+      putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
   else if action == "p" then do
 
@@ -79,7 +90,7 @@ takeInputsFromUser dictTrie = do
     putStrLn allWords
     putStrLn "I am ready for your next instruction!"
     takeInputsFromUser dictTrie
-    
+
   else if action == "e" then
     return ()
   else
